@@ -1,33 +1,23 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+name: Gm3u8
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  gollum
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  downloading:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
-
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
+    - name: Prepare your video
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+        mkdir download
+        git clone "https://github.com/${GITHUB_REPOSITORY}.wiki.git"
+        wiki=`echo $echo $GITHUB_REPOSITORY | cut -d "/" -f 2`.wiki
+        cd "$wiki"
+        drive=`git log --pretty=format: -1 --name-only *.md`
+        export drive
+        cd ..
+        wget -q `cat $wiki/$drive | xargs` --directory-prefix=download
+    - name: Install ffmpeg
+      run: |
+        sudo add-apt-repository ppa:jonathonf/ffmpeg-4
+        sudo apt install ffmpeg
+        ffmpeg -version
+
