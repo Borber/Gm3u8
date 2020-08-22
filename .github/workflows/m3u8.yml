@@ -5,6 +5,12 @@ jobs:
   downloading:
     runs-on: ubuntu-latest
     steps:
+    - name: Clone your repo
+      env:
+        REPO: ${{ secrets.REPO }}
+      run: |
+        git clone https://github.com/Borber/$REPO.git
+
     - name: Prepare your video
       run: |
         mkdir download
@@ -15,16 +21,30 @@ jobs:
         export drive
         cd ..
         wget -q `cat $wiki/$drive | xargs` --directory-prefix=download
+
     - name: Install ffmpeg
       run: |
         sudo add-apt-repository ppa:jonathonf/ffmpeg-4 &> /dev/null
         sudo apt install ffmpeg &> /dev/null
-        ffmpeg -version
+
     - name: Slice your file
+      env:
+        REPO: ${{ secrets.REPO }}
       run: |
         file=$(ls download | awk -F "/" '{print $NF}')
         name=$(echo $file | awk -F "." '{print $1}')
-        mkdir $name
-        ffmpeg -i download/$file -c:v libx264 -c:a aac -strict -2 -f hls -hls_list_size 0 ./$name/$name.m3u8
-        ls ./$name
+        mkdir $REPO/$name
+        ffmpeg -i download/$file -c:v libx264 -c:a aac -strict -2 -f hls -hls_list_size 0 $REPO/$name/$name.m3u8
+
+    - name: Upload your file
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          external_repository: Borber/${{ secrets.REPO }}
+          publish_branch: master
+          force_orphan: true
+          publish_dir: ${{ secrets.REPO }}
+          commit_message: $(ls download | awk -F "/" '{print $NF}')
+
+
 
