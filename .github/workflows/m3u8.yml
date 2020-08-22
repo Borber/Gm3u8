@@ -17,7 +17,9 @@ jobs:
         wget -q `cat $wiki/$drive | xargs` --directory-prefix=download
     - name: Install ffmpeg
       run: |
-        sudo add-apt-repository ppa:jonathonf/ffmpeg-4
-        sudo apt install ffmpeg
+        sudo add-apt-repository ppa:jonathonf/ffmpeg-4 &> /dev/null
+        sudo apt install ffmpeg &> /dev/null
         ffmpeg -version
+        file=$(ls download | awk -F "/" '{print $NF}')
+        echo $file
 
